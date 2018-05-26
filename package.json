@@ -1,5 +1,5 @@
 {
-  "name": "@legodude/create",
+  "name": "create-legodude",
   "version": "0.1.0",
   "description": "A tool to init packages like me",
   "main": "index.js",
