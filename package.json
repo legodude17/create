@@ -1,0 +1,35 @@
+{
+  "name": "@legodude/create",
+  "version": "0.1.0",
+  "description": "A tool to init packages like me",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/legodude17/create.git"
+  },
+  "keywords": [
+    "init",
+    "make",
+    "create-project"
+  ],
+  "author": "JDB",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/legodude17/init/issues"
+  },
+  "homepage": "https://github.com/legodude17/init#readme",
+  "dependencies": {
+    "execa": "^0.10.0",
+    "inquirer": "^5.2.0",
+    "semver": "^5.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0"
+  }
+}
