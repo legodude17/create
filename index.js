@@ -90,7 +90,7 @@ inquirer.prompt([
     default: hash => (hash.type === 'basic' ? 'index.js' : 'src/index.js')
   }
 ]).then(answers => new Promise((resolve, reject) => {
-  ll.make = 'Make folder';
+  ll.make = `Create folder ${folder(answers.name)}`;
   ll.start();
   fs.mkdir(folder(answers.name), err => {
     process.chdir(folder(answers.name));
@@ -98,7 +98,7 @@ inquirer.prompt([
     return resolve(answers);
   });
 })).catch(err => ll.make.error(err)).then(answers => {
-  ll.make.complete();
+  ll.make.complete(`Created folder ${folder(answers.name)}`);
   ll.write = 'Write files';
   const repoUrl = `https://github.com/${answers.username}/${answers.repo}`;
   const packageJson = {
@@ -167,7 +167,7 @@ export default {
 })
   .catch(err => ll.write.error(err))
   .then(answers => {
-    ll.write.complete();
+    ll.write.complete('Wrote files');
     ll.npm = 'Install npm packages';
     const parcel = answers.type === 'parcel';
     const rollup = answers.type === 'rollup';
@@ -189,6 +189,7 @@ export default {
     return execa.shell(`npm i -D ${packages.join(' ')}`);
   })
   .catch(err => ll.npm.error(err))
-  .then(() => ll.npm.complete())
+  .then(() => ll.npm.complete('Packages installed'))
+  .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
   .then(() => process.exit(0))
   .catch(() => process.exit(1));
