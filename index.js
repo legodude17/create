@@ -4,6 +4,7 @@ const inquirer = require('inquirer');
 const semver = require('semver');
 const fs = require('fs');
 const execa = require('execa');
+const ll = require('listr-log');
 
 const writeFile = (place, contents) => new Promise(((resolve, reject) => {
   fs.writeFile(place, contents, (err, res) => (err ? reject(err) : resolve(res)));
@@ -88,12 +89,17 @@ inquirer.prompt([
     message: 'What is the entrypoint? ',
     default: hash => (hash.type === 'basic' ? 'index.js' : 'src/index.js')
   }
-]).then(answers => new Promise((resolve, reject) =>
+]).then(answers => new Promise((resolve, reject) => {
+  ll.make = 'Make folder';
+  ll.start();
   fs.mkdir(folder(answers.name), err => {
     process.chdir(folder(answers.name));
     if (err) return reject(err);
     return resolve(answers);
-  }))).then(answers => {
+  });
+})).catch(err => ll.make.error(err)).then(answers => {
+  ll.make.complete();
+  ll.write = 'Write files';
   const repoUrl = `https://github.com/${answers.username}/${answers.repo}`;
   const packageJson = {
     name: answers.name,
@@ -142,30 +148,47 @@ export default {
   }
 }`;
 
-  return Promise.all([
+  [
+    'package.json',
+    '.eslintrc',
+    answers.babel && '.babelrc',
+    (answers.type === 'rollup') && 'rollup.config.js'
+  ].filter(Boolean)
+    .forEach(file => ll.write.addTask({ name: file, title: `Write ${file}` }));
+
+  const files = [
     write('package.json', packageJson),
     write('.eslintrc', eslintrc),
     answers.babel && write('.babelrc', babelrc),
     (answers.type === 'rollup') && write('rollup.config.js', rollup)
-  ].filter(Boolean)).then(() => answers);
-}).then(answers => {
-  const parcel = answers.type === 'parcel';
-  const rollup = answers.type === 'rollup';
-  const packages = [
-    'eslint',
-    `eslint-config-airbnb${answers.react ? '' : '-base'}`,
-    'eslint-plugin-import',
-    answers.react && 'eslint-plugin-react',
-    answers.react && 'eslint-plugin-jsx-a11y',
-    (answers.babel && !parcel) && '@babel/core',
-    answers.babel && (parcel ? 'babel-preset-env' : '@babel/preset-env'),
-    answers.react && (parcel ? 'babel-preset-react' : '@babel/preset-react'),
-    rollup && 'rollup',
-    rollup && 'rollup-plugin-node-resolve',
-    (rollup && answers.babel) && 'rollup-plugin-babel',
-    parcel && 'parcel-bundler'
   ].filter(Boolean);
-  return execa.shell(`npm i -D ${packages.join(' ')}`);
+
+  return Promise.all(files).then(() => answers);
 })
-  .then(() => console.log('Done!'))
-  .catch(err => console.error(err.stack || err.message));
+  .catch(err => ll.write.error(err))
+  .then(answers => {
+    ll.write.complete();
+    ll.npm = 'Install npm packages';
+    const parcel = answers.type === 'parcel';
+    const rollup = answers.type === 'rollup';
+    const packages = [
+      'eslint',
+      `eslint-config-airbnb${answers.react ? '' : '-base'}`,
+      'eslint-plugin-import',
+      answers.react && 'eslint-plugin-react',
+      answers.react && 'eslint-plugin-jsx-a11y',
+      (answers.babel && !parcel) && '@babel/core',
+      answers.babel && (parcel ? 'babel-preset-env' : '@babel/preset-env'),
+      answers.react && (parcel ? 'babel-preset-react' : '@babel/preset-react'),
+      rollup && 'rollup',
+      rollup && 'rollup-plugin-node-resolve',
+      (rollup && answers.babel) && 'rollup-plugin-babel',
+      parcel && 'parcel-bundler'
+    ].filter(Boolean);
+    packages.forEach(pkg => ll.npm.addTask({ name: pkg, title: `Install ${pkg}` }));
+    return execa.shell(`npm i -D ${packages.join(' ')}`);
+  })
+  .catch(err => ll.npm.error(err))
+  .then(() => ll.npm.complete())
+  .then(() => process.exit(0))
+  .catch(() => process.exit(1));
