@@ -5,6 +5,10 @@ const semver = require('semver');
 const fs = require('fs');
 const execa = require('execa');
 const ll = require('listr-log');
+const mdir = require('make-dir');
+const path = require('path');
+const GitHub = require('github-api');
+const series = require('p-series');
 
 const writeFile = (place, contents) => new Promise(((resolve, reject) => {
   fs.writeFile(place, contents, (err, res) => (err ? reject(err) : resolve(res)));
@@ -88,6 +92,17 @@ inquirer.prompt([
     name: 'entry',
     message: 'What is the entrypoint? ',
     default: hash => (hash.type === 'basic' ? 'index.js' : 'src/index.js')
+  },
+  {
+    type: 'confirm',
+    name: 'github',
+    message: 'Create github repo? '
+  },
+  {
+    type: 'password',
+    name: 'ghpass',
+    message: 'What is your GitHub password? ',
+    when: hash => hash.github
   }
 ]).then(answers => new Promise((resolve, reject) => {
   ll.make = `Create folder ${folder(answers.name)}`;
@@ -97,47 +112,49 @@ inquirer.prompt([
     if (err) return reject(err);
     return resolve(answers);
   });
-})).catch(err => ll.make.error(err)).then(answers => {
-  ll.make.complete(`Created folder ${folder(answers.name)}`);
-  ll.write = 'Write files';
-  const repoUrl = `https://github.com/${answers.username}/${answers.repo}`;
-  const packageJson = {
-    name: answers.name,
-    version: answers.version,
-    description: answers.desc,
-    main: answers.entry,
-    repository: {
-      type: 'git',
-      url: repoUrl
-    },
-    keywords: [],
-    author: answers.username,
-    license: 'MIT',
-    bugs: {
-      url: `${repoUrl}/issues`
-    },
-    homepage: `${repoUrl}#readme`
-  };
-  const eslintrc = {
-    extends: 'airbnb-base',
-    rules: {
-      'no-multi-assign': 'off',
-      'no-shadow': 'off',
-      'no-return-assign': 1,
-      'arrow-parens': 'off',
-      'max-len': ['warn', { code: 120 }],
-      'comma-dangle': ['error', 'never'],
-      'no-restricted-syntax': ['error', 'WithStatement', "BinaryExpression[operator='in']"],
-      indent: ['error', 2],
-      'no-param-reassign': 'off',
-      'no-plusplus': 'off',
-      'no-underscore-dangle': 'off'
-    }
-  };
-  const babelrc = {
-    presets: ['env', answers.react && 'react'].filter(Boolean)
-  };
-  const rollup = `import resolve from 'rollup-plugin-node-resolve';
+}))
+  .catch(err => ll.make.error(err, true))
+  .then(answers => {
+    ll.make.complete(`Created folder ${folder(answers.name)}`);
+    ll.write = 'Write files';
+    const repoUrl = `https://github.com/${answers.username}/${answers.repo}`;
+    const packageJson = {
+      name: answers.name,
+      version: answers.version,
+      description: answers.desc,
+      main: answers.entry,
+      repository: {
+        type: 'git',
+        url: repoUrl
+      },
+      keywords: [],
+      author: answers.username,
+      license: 'MIT',
+      bugs: {
+        url: `${repoUrl}/issues`
+      },
+      homepage: `${repoUrl}#readme`
+    };
+    const eslintrc = {
+      extends: 'airbnb-base',
+      rules: {
+        'no-multi-assign': 'off',
+        'no-shadow': 'off',
+        'no-return-assign': 1,
+        'arrow-parens': 'off',
+        'max-len': ['warn', { code: 120 }],
+        'comma-dangle': ['error', 'never'],
+        'no-restricted-syntax': ['error', 'WithStatement', "BinaryExpression[operator='in']"],
+        indent: ['error', 2],
+        'no-param-reassign': 'off',
+        'no-plusplus': 'off',
+        'no-underscore-dangle': 'off'
+      }
+    };
+    const babelrc = {
+      presets: ['env', answers.react && 'react'].filter(Boolean)
+    };
+    const rollup = `import resolve from 'rollup-plugin-node-resolve';
 ${answers.babel ? 'import babel from \'rollup-plugin-babel\';' : ''}
 
 export default {
@@ -148,26 +165,68 @@ export default {
   }
 }`;
 
-  [
-    'package.json',
-    '.eslintrc',
-    answers.babel && '.babelrc',
-    (answers.type === 'rollup') && 'rollup.config.js'
-  ].filter(Boolean)
-    .forEach(file => ll.write.addTask({ name: file, title: `Write ${file}` }));
+    const gitignore = [
+      'node_modules/',
+      answers.type !== 'basic' && 'dist/',
+      answers.type === 'parcel' && '.cache/'
+    ].filter(Boolean).join('\n');
 
-  const files = [
-    write('package.json', packageJson),
-    write('.eslintrc', eslintrc),
-    answers.babel && write('.babelrc', babelrc),
-    (answers.type === 'rollup') && write('rollup.config.js', rollup)
-  ].filter(Boolean);
+    const readme = `# ${answers.name}
+> ${answers.desc}`;
 
-  return Promise.all(files).then(() => answers);
-})
-  .catch(err => ll.write.error(err))
+    [
+      'package.json',
+      '.eslintrc',
+      '.gitignore',
+      'readme.md',
+      answers.babel && '.babelrc',
+      (answers.type === 'rollup') && 'rollup.config.js'
+    ].filter(Boolean)
+      .forEach(file => ll.write.addTask({ name: file, title: `Write ${file}` }));
+
+    const files = [
+      write('package.json', packageJson),
+      write('.eslintrc', eslintrc),
+      writeFile('.gitignore', gitignore),
+      writeFile('readme.md', readme),
+      answers.babel && write('.babelrc', babelrc),
+      (answers.type === 'rollup') && write('rollup.config.js', rollup)
+    ].filter(Boolean);
+
+    return Promise.all(files).then(() => answers);
+  })
+  .catch(err => ll.write.error(err, true))
   .then(answers => {
     ll.write.complete('Wrote files');
+    ll.src = 'Create entrypoint';
+    ll.src.addTask({ title: 'Create folder', name: 'folder' });
+    return mdir(path.dirname(answers.entry)).then(() => answers);
+  })
+  .catch(err => (ll.src.folder ? ll.src.folder.error(err, true) : Promise.reject(err)))
+  .then(answers => {
+    ll.src.folder.complete(`Created folder ${path.dirname(answers.entry)}`);
+    ll.src.addTask({ title: 'Create file', name: 'file' });
+    return writeFile(path.basename(answers.entry)).then(() => answers);
+  })
+  .catch(err => (ll.src.file ? ll.src.file.error(err, true) : ll.src.error(err, true)))
+  .then(answers => {
+    ll.src.file.complete(`Wrote ${path.basename(answers.entry)}`);
+    ll.src.complete('Created entrypoint');
+    if (!answers.github) return answers;
+    ll.github = 'Create github repo';
+    const gh = new GitHub({
+      username: answers.username,
+      password: answers.ghpass
+    });
+    const user = gh.getUser(answers.username);
+    return user.createRepo({
+      name: answers.name,
+      description: answers.desc
+    }).then(() => answers);
+  })
+  .catch(err => ll.github.error(err, true))
+  .then(answers => {
+    if (answers.github) ll.github.complete(`Created ${answers.username}/${answers.name}`);
     ll.npm = 'Install npm packages';
     const parcel = answers.type === 'parcel';
     const rollup = answers.type === 'rollup';
@@ -186,10 +245,33 @@ export default {
       parcel && 'parcel-bundler'
     ].filter(Boolean);
     packages.forEach(pkg => ll.npm.addTask({ name: pkg, title: `Install ${pkg}` }));
-    return execa.shell(`npm i -D ${packages.join(' ')}`);
+    return Promise.all(packages
+      .map(pkg => execa.shell(`npm i ${pkg}`))
+      .map((prom, i) =>
+        prom.then(() => ll.npm[packages[i]].complete('Installed'))))
+      .then(() => answers);
   })
-  .catch(err => ll.npm.error(err))
-  .then(() => ll.npm.complete('Packages installed'))
+  .catch(err => ll.npm.error(err, true))
+  .then(answers => {
+    ll.npm.complete('Packages installed');
+    ll.git = 'Init Git';
+    const commands = [
+      'git init'
+    ];
+    if (answers.github) {
+      commands.push(`git remote add origin https://github.com/${answers.username}/${answers.repo}`);
+      commands.push('git add .');
+      commands.push('git commit -m "init"');
+      commands.push('git push -u origin master');
+    }
+    commands.forEach((v, i) => ll.git.addTask({ name: i, title: v }));
+    const proms = commands.map((v, i) => () =>
+      execa.shell(v)
+        .then(() => ll.git[i].complete('Ran command')));
+    return series(proms).then(() => answers);
+  })
+  .catch(err => ll.git.error(err, true))
+  .then(() => ll.git.complete('Git init complete'))
   .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
   .then(() => process.exit(0))
   .catch(() => process.exit(1));
