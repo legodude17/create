@@ -246,7 +246,7 @@ export default {
     ].filter(Boolean);
     packages.forEach(pkg => ll.npm.addTask({ name: pkg, title: `Install ${pkg}` }));
     return Promise.all(packages
-      .map(pkg => execa.shell(`npm i ${pkg}`))
+      .map(pkg => execa.shell(`npm i -D ${pkg}`))
       .map((prom, i) =>
         prom.then(() => ll.npm[packages[i]].complete('Installed'))))
       .then(() => answers);
