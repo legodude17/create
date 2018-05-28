@@ -206,7 +206,7 @@ export default {
   .then(answers => {
     ll.src.folder.complete(`Created folder ${path.dirname(answers.entry)}`);
     ll.src.addTask({ title: 'Create file', name: 'file' });
-    return writeFile(path.basename(answers.entry)).then(() => answers);
+    return writeFile(path.basename(answers.entry), '').then(() => answers);
   })
   .catch(err => (ll.src.file ? ll.src.file.error(err, true) : ll.src.error(err, true)))
   .then(answers => {
