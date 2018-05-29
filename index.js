@@ -29,9 +29,8 @@ inquirer.prompt([
     name: 'name',
     message: 'What should it be called? ',
     validate(name) {
-      if (encodeURIComponent(name) !== name) {
-        return 'Name must not include URI-encodable characters';
-      }
+      if (name === '') return 'Name must not be empty';
+      if (encodeURIComponent(name) !== name) return 'Name must not include URI-encodable characters';
       return true;
     }
   },
@@ -158,9 +157,9 @@ inquirer.prompt([
       'import resolve from \'rollup-plugin-node-resolve\';',
       answers.babel && 'import babel from \'rollup-plugin-babel\';',
       'export default {',
-      `input: ${answers.entry},`,
+      `input: '${answers.entry.replace(/ /g, '')}',`,
       'output: {',
-      '  file: \'dist/bundle.js\',',
+      'file: \'dist/bundle.js\',',
       'format: \'cjs\'',
       '},',
       'plugins: [',
@@ -194,8 +193,8 @@ inquirer.prompt([
       write('.eslintrc', eslintrc),
       writeFile('.gitignore', gitignore),
       writeFile('readme.md', readme),
-      answers.babel && write('.babelrc', babelrc),
-      (answers.type === 'rollup') && write('rollup.config.js', rollup)
+      answers.babel && writeFile('.babelrc', babelrc),
+      (answers.type === 'rollup') && writeFile('rollup.config.js', rollup)
     ].filter(Boolean);
 
     return Promise.all(files).then(() => answers);
