@@ -154,16 +154,21 @@ inquirer.prompt([
     const babelrc = {
       presets: ['env', answers.react && 'react'].filter(Boolean)
     };
-    const rollup = `import resolve from 'rollup-plugin-node-resolve';
-${answers.babel ? 'import babel from \'rollup-plugin-babel\';' : ''}
-
-export default {
-  input: ${answers.entry},
-  output: {
-    file: 'dist/bundle.js',
-    format: 'cjs'
-  }
-}`;
+    const rollup = [
+      'import resolve from \'rollup-plugin-node-resolve\';',
+      answers.babel && 'import babel from \'rollup-plugin-babel\';',
+      'export default {',
+      `input: ${answers.entry},`,
+      'output: {',
+      '  file: \'dist/bundle.js\',',
+      'format: \'cjs\'',
+      '},',
+      'plugins: [',
+      'resolve(),',
+      answers.babel && 'babel()',
+      ']',
+      '}'
+    ].filter(Boolean).join('\n');
 
     const gitignore = [
       'node_modules/',
@@ -241,7 +246,7 @@ export default {
       answers.react && (parcel ? 'babel-preset-react' : '@babel/preset-react'),
       rollup && 'rollup',
       rollup && 'rollup-plugin-node-resolve',
-      (rollup && answers.babel) && 'rollup-plugin-babel',
+      (rollup && answers.babel) && 'rollup-plugin-babel@beta',
       parcel && 'parcel-bundler'
     ].filter(Boolean);
     packages.forEach(pkg => ll.npm.addTask({ name: pkg, title: `Install ${pkg}` }));
@@ -256,12 +261,12 @@ export default {
     ll.npm.complete('Packages installed');
     ll.git = 'Init Git';
     const commands = [
-      'git init'
+      'git init',
+      'git add .',
+      'git commit -m "init"'
     ];
     if (answers.github) {
       commands.push(`git remote add origin https://github.com/${answers.username}/${answers.repo}`);
-      commands.push('git add .');
-      commands.push('git commit -m "init"');
       commands.push('git push -u origin master');
     }
     commands.forEach((v, i) => ll.git.addTask({ name: i, title: v }));
