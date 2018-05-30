@@ -193,7 +193,7 @@ inquirer.prompt([
       write('.eslintrc', eslintrc),
       writeFile('.gitignore', gitignore),
       writeFile('readme.md', readme),
-      answers.babel && writeFile('.babelrc', babelrc),
+      answers.babel && write('.babelrc', babelrc),
       (answers.type === 'rollup') && writeFile('rollup.config.js', rollup)
     ].filter(Boolean);
 
