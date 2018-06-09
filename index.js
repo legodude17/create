@@ -71,14 +71,15 @@ inquirer.prompt([
     choices: [
       'basic',
       'rollup',
-      'parcel'
+      'parcel',
+      'electron'
     ]
   },
   {
     type: 'confirm',
     name: 'babel',
     message: 'Use babel? ',
-    when: hash => hash.type !== 'basic'
+    when: hash => hash.type === 'rollup' || hash.type === 'parcel'
   },
   {
     type: 'confirm',
@@ -90,7 +91,7 @@ inquirer.prompt([
     type: 'input',
     name: 'entry',
     message: 'What is the entrypoint? ',
-    default: hash => (hash.type === 'basic' ? 'index.js' : 'src/index.js')
+    default: hash => ((hash.type === 'basic' || hash.type === 'electron') ? 'index.js' : 'src/index.js')
   },
   {
     type: 'confirm',
@@ -177,6 +178,16 @@ inquirer.prompt([
 
     const readme = `# ${answers.name}
 > ${answers.desc}`;
+    if (answers.type === 'electron') {
+      eslintrc.env = {
+        browser: true,
+        node: true
+      };
+      packageJson.scripts = {
+        run: 'electron .',
+        dev: 'electron . --debug'
+      };
+    }
 
     [
       'package.json',
@@ -216,6 +227,63 @@ inquirer.prompt([
   .then(answers => {
     ll.src.file.complete(`Wrote ${path.basename(answers.entry)}`);
     ll.src.complete('Created entrypoint');
+    if (answers.type !== 'electron') return answers;
+    ll.electron = 'Create files for electron';
+    const indexJs = [
+      "const { app, BrowserWindow } = require('electron'); // eslint-disable-line",
+      "const path = require('path');",
+      "const debug = process.argv[2].includes('debug');",
+      'function makeWindow() {',
+      '  const opts = {',
+      '    width: 100,',
+      '    height: 100,',
+      '    title: app.getName()',
+      '  };',
+      '  const window = new BrowserWindow(opts);',
+      "  window.loadFile(path.join(__dirname, 'index.html'));",
+      '  if (debug) {',
+      '    window.webContents.openDevTools();',
+      '    window.maximize();',
+      "    require('devtron').install(); // eslint-disable-line",
+      '  }',
+      '}',
+      "app.on('ready', makeWindow);",
+      "app.on('window-all-closed', () => app.quit());"
+    ].join('\n');
+
+    const indexHTML = [
+      '<!DOCTYPE html>',
+      '<html lang="en" dir="ltr">',
+      '<head>',
+      '  <meta charset="utf-8">',
+      '  <link rel="stylesheet" href="main.css">',
+      `  <title>${answers.name}</title>`,
+      '</head>',
+      '<body>',
+      '  <script>',
+      "    require('./renderer.js');",
+      '  </script>',
+      '</body>',
+      '</html>'
+    ].join('\n');
+
+    [
+      'index.html',
+      'index.js',
+      'renderer.js',
+      'main.css'
+    ].forEach(v => ll.electron.addTask({ title: `Write ${v}`, name: v }));
+
+    return Promise.all([
+      writeFile('index.html', indexHTML),
+      writeFile('index.js', indexJs),
+      writeFile('renderer.js', ''),
+      writeFile('main.css', '')
+    ]).then(() => answers);
+  })
+  .catch(err => ll.electron.error(err, true))
+  .then(answers => {
+    if (answers.type === 'electron') ll.electron.complete('Wrote Electron files');
     if (!answers.github) return answers;
     ll.github = 'Create github repo';
     const gh = new GitHub({
@@ -234,6 +302,7 @@ inquirer.prompt([
     ll.npm = 'Install npm packages';
     const parcel = answers.type === 'parcel';
     const rollup = answers.type === 'rollup';
+    const electron = answers.type === 'electron';
     const packages = [
       'eslint',
       `eslint-config-airbnb${answers.react ? '' : '-base'}`,
@@ -246,7 +315,9 @@ inquirer.prompt([
       rollup && 'rollup',
       rollup && 'rollup-plugin-node-resolve',
       (rollup && answers.babel) && 'rollup-plugin-babel@beta',
-      parcel && 'parcel-bundler'
+      parcel && 'parcel-bundler',
+      electron && 'electron',
+      electron && 'devtron'
     ].filter(Boolean);
     packages.forEach(pkg => ll.npm.addTask({ name: pkg, title: `Install ${pkg}` }));
     return Promise.all(packages
