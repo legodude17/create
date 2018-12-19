@@ -1,4 +1,6 @@
 const fs = require('fs');
+const execa = require('execa');
+const series = require('p-series');
 
 const utils = module.exports = {
   writeFile: (place, contents) => new Promise(((resolve, reject) => {
@@ -12,5 +14,8 @@ const utils = module.exports = {
   folder: name => {
     const arr = name.split('/');
     return arr[arr.length - 1];
-  }
+  },
+
+  execa,
+  series
 };

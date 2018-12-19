@@ -1,5 +1,3 @@
-const execa = require('execa');
-
 module.exports = function typer(types) {
   if (types.length === 0) {
     return {
@@ -33,11 +31,11 @@ module.exports = function typer(types) {
       when: () => true,
       name: 'install',
       desc: 'Install Packages',
-      run(answers, ll) {
+      run(answers, ll, utils) {
         const { packages } = types.filter(type => type.type === answers.type)[0];
         packages.forEach(pkg => ll.addTask({ name: pkg, title: `Install ${pkg}` }));
         return Promise.all(packages
-          .map(pkg => execa.shell(`npm i -D ${pkg}`))
+          .map(pkg => utils.execa.shell(`npm i -D ${pkg}`))
           .map((prom, i) =>
             prom.then(() => ll[packages[i]].complete('Installed'))))
           .then(() => answers);

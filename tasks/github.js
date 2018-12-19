@@ -17,6 +17,18 @@ module.exports = {
     },
     {
       type: 'input',
+      name: 'ghdesc',
+      message: 'What is the repo description?',
+      initial(input) {
+        const hash = input.state.answers;
+        if (hash.pkgjson && hash.pkgjson.values.description) return hash.pkgjson.values.description;
+        if (hash.folder) return hash.folder;
+        if (hash.name) return hash.name;
+        return '';
+      }
+    },
+    {
+      type: 'input',
       name: 'username',
       message: 'What is your GitHub username?',
       initial(input) {
@@ -49,8 +61,8 @@ module.exports = {
       });
       const user = gh.getUser(answers.username);
       return user.createRepo({
-        name: answers.name,
-        description: answers.desc
+        name: answers.repo,
+        description: answers.ghdesc
       }).then(() => `Created repo ${answers.username}/${answers.repo}`);
     }
   }

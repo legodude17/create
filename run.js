@@ -22,11 +22,11 @@ module.exports = async function run(plugins, types) {
     } catch (e) {
       if (tl) {
         tl.error(e, false);
-      } else {
-        throw new Error(`Task ${v.name} failed because ${e.toString()}`);
+        ll.renderer.end(e);
+        throw e;
+        // return;
       }
-      ll.renderer.end(e);
-      return;
+      throw new Error(`Task ${v.name} failed because ${e.toString()}`);
     }
   }
   ll.renderer.end();
