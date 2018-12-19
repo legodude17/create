@@ -3,6 +3,12 @@ const GitHub = require('github-api');
 module.exports = {
   questions: [
     {
+      type: 'confirm',
+      message: 'Create GitHub repo?',
+      name: 'github',
+      initial: true
+    },
+    {
       type: 'input',
       name: 'repo',
       message: 'What is the repo name?',
@@ -13,7 +19,8 @@ module.exports = {
         if (hash.folder) return hash.folder;
         if (hash.name) return hash.name;
         return '';
-      }
+      },
+      skip: input => !input.state.answers.github
     },
     {
       type: 'input',
@@ -25,7 +32,8 @@ module.exports = {
         if (hash.folder) return hash.folder;
         if (hash.name) return hash.name;
         return '';
-      }
+      },
+      skip: input => !input.state.answers.github
     },
     {
       type: 'input',
@@ -35,19 +43,14 @@ module.exports = {
         const hash = input.state.answers;
         if (hash.pkgjson && hash.pkgjson.username) return hash.pkgjson.username;
         return 'legodude17';
-      }
-    },
-    {
-      type: 'confirm',
-      message: 'Create GitHub repo?',
-      name: 'github',
-      initial: true
+      },
+      skip: input => !input.state.answers.github
     },
     {
       type: 'password',
       name: 'ghpass',
       message: 'What is your GitHub password?',
-      when: hash => hash.github
+      skip: input => !input.state.answers.github
     }
   ],
   task: {
