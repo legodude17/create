@@ -8,7 +8,12 @@ module.exports = {
       message: 'Fill out the fields in package.json:',
       fields: [
         {
-          name: 'name'
+          name: 'name',
+          validate(name) {
+            if (name === '') return 'Name must not be empty';
+            if (encodeURIComponent(name) !== name) return 'Name must not include URI-encodable characters';
+            return true;
+          }
         },
         {
           name: 'version',
