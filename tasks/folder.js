@@ -18,6 +18,7 @@ module.exports = {
   task: {
     name: 'folder',
     title: 'Create Folder',
+    order: 1,
     run(answers) {
       return new Promise((resolve, reject) => {
         fs.mkdir(answers.folder, err => {
