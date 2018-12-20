@@ -23,8 +23,8 @@ module.exports = async function run(plugins, types) {
       if (tl) {
         tl.error(e, false);
         ll.renderer.end(e);
-        throw e;
-        // return;
+        // throw e;
+        return;
       }
       throw new Error(`Task ${v.name} failed because ${e.toString()}`);
     }

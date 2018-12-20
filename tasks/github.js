@@ -20,7 +20,7 @@ module.exports = {
         if (hash.name) return hash.name;
         return '';
       },
-      skip: input => !input.state.answers.github
+      skip: arg => (typeof arg === 'string' ? false : !arg.answers.github)
     },
     {
       type: 'input',
@@ -33,7 +33,7 @@ module.exports = {
         if (hash.name) return hash.name;
         return '';
       },
-      skip: input => !input.state.answers.github
+      skip: arg => (typeof arg === 'string' ? false : !arg.answers.github)
     },
     {
       type: 'input',
@@ -44,13 +44,13 @@ module.exports = {
         if (hash.pkgjson && hash.pkgjson.username) return hash.pkgjson.username;
         return 'legodude17';
       },
-      skip: input => !input.state.answers.github
+      skip: arg => (typeof arg === 'string' ? false : !arg.answers.github)
     },
     {
       type: 'password',
       name: 'ghpass',
       message: 'What is your GitHub password?',
-      skip: input => !input.state.answers.github
+      skip: arg => (typeof arg === 'string' ? false : !arg.answers.github)
     }
   ],
   task: {
