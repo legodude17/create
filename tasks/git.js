@@ -16,7 +16,7 @@ module.exports = {
       commands.forEach((v, i) => ll.addTask({ name: i, title: v }));
       const proms = commands.map((v, i) => () =>
         util.execa.shell(v)
-          .then(() => ll.git[i].complete('Ran command')));
+          .then(() => ll[i].complete('Ran command')));
       return util.series(proms).then(() => 'Git Inited');
     }
   }
