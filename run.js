@@ -8,6 +8,7 @@ module.exports = async function run(plugins, types) {
   const questions = plugins.reduce((arr, plugin) => arr.concat(plugin.questions), []).concat(typer.questions);
   const answers = await enquirer.prompt(questions);
   const tasks = plugins.map(plugin => plugin.task).concat(typer.tasks).sort((a, b) => {
+    if (a.order && b.order) return b.order - a.order;
     if (a.order) return -a.order;
     if (b.order) return b.order;
     return 0;
