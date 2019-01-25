@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+/*eslint-disable*/
 
 const inquirer = require('inquirer');
 const semver = require('semver');
