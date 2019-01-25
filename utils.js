@@ -1,6 +1,8 @@
 const fs = require('fs');
 const execa = require('execa');
 const series = require('p-series');
+const path = require('path');
+const makeDir = require('make-dir');
 
 const utils = module.exports = {
   writeFile: (place, contents) => new Promise(((resolve, reject) => {
@@ -16,6 +18,9 @@ const utils = module.exports = {
     return arr[arr.length - 1];
   },
 
+  mkdirp: makeDir,
+
+  path,
   execa,
   series
 };
