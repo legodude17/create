@@ -1,4 +1,6 @@
-module.exports = {
+const eslint = require('../mixins/eslint');
+
+module.exports = eslint({
   type: 'rollup',
   questions: [{
     type: 'confirm',
@@ -7,7 +9,7 @@ module.exports = {
   }],
   packages: answers => ['rollup', 'rollup-plugin-node-resolve', answers.babel && 'rollup-plugin-babel@beta'],
   tasks: [{
-    name: 'rollupConfig',
+    name: 'rollup.config.js',
     title: 'Create rollup config file',
     run(answers, tl, utils) {
       const rollupConfig = [
@@ -39,4 +41,4 @@ module.exports = {
     }
   }],
   entry: 'src/index.js'
-};
+});
