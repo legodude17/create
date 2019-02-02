@@ -1,6 +1,8 @@
 const eslint = require('../mixins/eslint');
+const babel = require('../mixins/babel');
+const configFile = require('../mixins/configFile');
 
-module.exports = eslint({
+module.exports = babel(eslint({
   type: 'rollup',
   questions: [{
     type: 'confirm',
@@ -8,37 +10,21 @@ module.exports = eslint({
     message: 'Use babel?'
   }],
   packages: answers => ['rollup', 'rollup-plugin-node-resolve', answers.babel && 'rollup-plugin-babel@beta'],
-  tasks: [{
-    name: 'rollup.config.js',
-    title: 'Create rollup config file',
-    run(answers, tl, utils) {
-      const rollupConfig = [
-        'import resolve from \'rollup-plugin-node-resolve\';',
-        answers.babel && 'import babel from \'rollup-plugin-babel\';',
-        '',
-        'export default {',
-        `  input: '${answers.entry.replace(/ /g, '')}',`,
-        '  output: {',
-        '  file: \'dist/bundle.js\',',
-        '    format: \'cjs\'',
-        '  },',
-        '  plugins: [',
-        '    resolve(),',
-        answers.babel && '    babel()',
-        '  ]',
-        '}'
-      ].filter(Boolean).join('\n');
-      return utils.writeFile('rollup.config.js', rollupConfig).then(() => 'Wrote to rollup.config.js');
-    }
-  }, {
-    name: 'babelrc',
-    title: 'Create babel config file',
-    run(answers, tl, utils) {
-      const babelrc = {
-        presets: [['env', { modules: false }]]
-      };
-      return utils.write('.babelrc', babelrc).then(() => 'Wrote to .babelrc');
-    }
-  }],
+  tasks: [configFile('rollup', 'rollup.config.js', answers => [
+    'import resolve from \'rollup-plugin-node-resolve\';',
+    answers.babel && 'import babel from \'rollup-plugin-babel\';',
+    '',
+    'export default {',
+    `  input: '${answers.entry.replace(/ /g, '')}',`,
+    '  output: {',
+    '  file: \'dist/bundle.js\',',
+    '    format: \'cjs\'',
+    '  },',
+    '  plugins: [',
+    '    resolve(),',
+    answers.babel && '    babel()',
+    '  ]',
+    '}'
+  ])],
   entry: 'src/index.js'
-});
+}));
