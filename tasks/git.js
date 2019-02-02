@@ -18,6 +18,7 @@ module.exports = {
         util.execa.shell(v)
           .then(() => ll[i].complete('Ran command')));
       return util.series(proms).then(() => 'Git Inited');
-    }
+    },
+    order: -1
   }
 };
