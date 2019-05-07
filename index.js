@@ -1,3 +1,6 @@
+#! /usr/bin/env node
+
+
 const run = require('./run');
 const folder = require('./tasks/folder');
 const pkgjson = require('./tasks/pkgjson');
