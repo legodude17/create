@@ -7,7 +7,7 @@ module.exports = function babel(type) {
     message: 'Use babel?'
   });
 
-  const babelrc = configFile('babel', '.babelrc', answers => ({
+  const babelrc = configFile('babel', '.babelrc', () => ({
     presets: [['env', { modules: false }]]
   }));
 

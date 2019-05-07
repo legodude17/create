@@ -23,25 +23,24 @@ module.exports = function typer(types) {
         }
       }
     ].concat(types.reduce(
-      (arr, type) => arr.concat(type.questions.map(question => Object.assign(
+      (arr, type) => arr.concat(type.questions.map((question, i, _, skip = question.skip) => Object.assign(
         question,
         {
           skip() {
-            return this.state.answers.type !== type;
+            return this.state.answers.type !== type.type && (!skip || skip.call(this));
           }
         }
       ))),
       []
     )),
     tasks: types.reduce(
-      (arr, type) => arr.concat(type.tasks.map(task => Object.assign(task, {
+      (arr, type) => arr.concat(type.tasks.map((task, i, _, when = task.when) => Object.assign(task, {
         when(answers) {
-          return answers.type === type;
+          return answers.type === type.type && (!when || when.call(task, answers));
         }
       }))),
       []
     ).concat({
-      when: () => true,
       name: 'install',
       title: 'Install Packages',
       run(answers, ll, utils) {
@@ -51,11 +50,10 @@ module.exports = function typer(types) {
           .map(pkg => utils.execa.shell(`npm i -D ${pkg}`, { cwd: process.cwd() }))
           .map((prom, i) =>
             prom.then(() => ll[packages[i]].complete('Installed'))))
-          .then(() => 'Installed all packages');
+          .then(() => `Installed ${packages.join(', ')}`);
       },
       order: -2
     }).concat({
-      when: () => true,
       name: 'entry',
       title: 'Create Entrypoint',
       run(answers, ll, utils) {
