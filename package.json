@@ -5,7 +5,12 @@
   "main": "index.js",
   "bin": "index.js",
   "files": [
-    "index.js"
+    "mixins/*",
+    "tasks/*",
+    "types/*",
+    "run.js",
+    "typer.js",
+    "utils.js"
   ],
   "repository": {
     "type": "git",
