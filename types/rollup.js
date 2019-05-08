@@ -4,11 +4,7 @@ const configFile = require('../mixins/configFile');
 
 module.exports = babel(eslint({
   type: 'rollup',
-  questions: [{
-    type: 'confirm',
-    name: 'babel',
-    message: 'Use babel?'
-  }],
+  questions: [],
   packages: answers => ['rollup', 'rollup-plugin-node-resolve', answers.babel && 'rollup-plugin-babel@beta'],
   tasks: [configFile('rollup', 'rollup.config.js', answers => [
     'import resolve from \'rollup-plugin-node-resolve\';',

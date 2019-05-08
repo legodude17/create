@@ -3,9 +3,29 @@ const ll = require('listr-log');
 const makeTyper = require('./typer');
 const utils = require('./utils');
 
+function combineQuestions(questions) {
+  const names = {};
+  questions.forEach(v => (Array.isArray(names[v.name]) ?
+    names[v.name].push(v) :
+    (names[v.name] = [v])));
+  return Object.keys(names).map((name) => {
+    const v = names[name];
+    if (v.length === 1) return v[0];
+    return {
+      name: v[0].name,
+      type: v[0].type,
+      message: v[0].message,
+      skip() { return v.every(z => !!z.skip && z.skip.call(this)); },
+      initial: v[0].initial
+    };
+  });
+}
+
 module.exports = async function run(plugins, types) {
   const typer = makeTyper(types);
-  const questions = plugins.reduce((arr, plugin) => arr.concat(plugin.questions), []).concat(typer.questions);
+  const questions = combineQuestions(plugins
+    .reduce((arr, plugin) => arr.concat(plugin.questions), [])
+    .concat(typer.questions));
   const answers = await enquirer.prompt(questions);
   const tasks = plugins.map(plugin => plugin.task).concat(typer.tasks).sort((a, b) => {
     if (a.order && b.order) return a.order - b.order;

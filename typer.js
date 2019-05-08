@@ -27,7 +27,7 @@ module.exports = function typer(types) {
         question,
         {
           skip() {
-            return this.state.answers.type !== type.type && (!skip || skip.call(this));
+            return this.state.answers.type !== type.type || (!!skip && skip.call(this));
           }
         }
       ))),
