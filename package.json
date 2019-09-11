@@ -30,7 +30,7 @@
   "dependencies": {
     "@legodude/enquirer": "^2.3.0",
     "execa": "^0.10.0",
-    "github-api": "^3.0.0",
+    "github-api": "^3.3.0",
     "listr-log": "^0.2.0",
     "make-dir": "^1.3.0",
     "p-series": "^1.1.0",
