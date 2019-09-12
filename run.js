@@ -33,7 +33,7 @@ module.exports = async function run(plugins, types, opts) {
     if (b.order) return b.order;
     return 0;
   });
-  // ll.start();
+  ll.start();
   let tl = null;
   for (const v of tasks) {
     try {
@@ -47,14 +47,13 @@ module.exports = async function run(plugins, types, opts) {
     } catch (e) {
       if (tl) {
         tl.error(e, false);
-        // ll.renderer.end(e);
-        console.error(e);
+        ll.renderer.end(e);
         return;
       }
       throw new Error(`Task ${v.name} failed because ${e.toString()}`);
     }
   }
-  // ll.renderer.end();
+  ll.renderer.end();
 };
 
 /*
