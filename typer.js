@@ -1,4 +1,4 @@
-module.exports = function typer(types) {
+module.exports = function typer(types, install) {
   if (types.length === 0) {
     return {
       questions: [],
@@ -40,7 +40,7 @@ module.exports = function typer(types) {
         }
       }))),
       []
-    ).concat({
+    ).concat(install && {
       name: 'install',
       title: 'Install Packages',
       run(answers, ll, utils) {

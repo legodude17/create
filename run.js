@@ -21,8 +21,8 @@ function combineQuestions(questions) {
   });
 }
 
-module.exports = async function run(plugins, types) {
-  const typer = makeTyper(types);
+module.exports = async function run(plugins, types, opts) {
+  const typer = makeTyper(types, opts.install);
   const questions = combineQuestions(plugins
     .reduce((arr, plugin) => arr.concat(plugin.questions), [])
     .concat(typer.questions));
@@ -33,7 +33,7 @@ module.exports = async function run(plugins, types) {
     if (b.order) return b.order;
     return 0;
   });
-  ll.start();
+  // ll.start();
   let tl = null;
   for (const v of tasks) {
     try {
@@ -47,13 +47,14 @@ module.exports = async function run(plugins, types) {
     } catch (e) {
       if (tl) {
         tl.error(e, false);
-        ll.renderer.end(e);
+        // ll.renderer.end(e);
+        console.error(e);
         return;
       }
       throw new Error(`Task ${v.name} failed because ${e.toString()}`);
     }
   }
-  ll.renderer.end();
+  // ll.renderer.end();
 };
 
 /*
