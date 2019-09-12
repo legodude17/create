@@ -1,7 +1,5 @@
-module.exports = function configFile(program, file, contents, config = true) {
-  if (typeof contents !== 'function') {
-    contents = () => contents;
-  }
+module.exports = function configFile(program, file, cntnts, config = true) {
+  const contents = typeof cntnts === 'function' ? cntnts : () => cntnts;
   return {
     name: file,
     title: config ? `Create ${program} config file` : program,
