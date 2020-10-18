@@ -61,14 +61,14 @@ module.exports = function typer(types) {
       when(answers) {
         return answers.install;
       },
-      order: 100000
+      order: 10
     }).concat({
       name: 'entry',
       title: 'Create Entrypoint',
       run(answers, ll, utils) {
         const { entry } = answers;
         ll.addTask({ name: 'folder', title: 'Make folder' });
-        const folder = utils.path.dirname(entry);
+        const folder = utils.resolve(utils.path.dirname(entry));
         return utils.mkdirp(folder).then(() => {
           ll.folder.complete(`Created folder ${folder}`);
           return utils.writeFile(entry, '// ENTRYPOINT');
