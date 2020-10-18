@@ -1,4 +1,4 @@
-module.exports = function typer(types, install = true) {
+module.exports = function typer(types) {
   if (types.length === 0) {
     return {
       questions: [],
@@ -21,6 +21,12 @@ module.exports = function typer(types, install = true) {
           const { type } = prompt.state.answers;
           return types.filter(t => t.type === type)[0].entry;
         }
+      },
+      {
+        type: 'confirm',
+        name: 'install',
+        message: 'Install packages?',
+        initial: true
       }
     ].concat(types.reduce(
       (arr, type) => arr.concat(type.questions.map((question, i, _, skip = question.skip) => Object.assign(
@@ -40,7 +46,7 @@ module.exports = function typer(types, install = true) {
         }
       }))),
       []
-    ).concat(install && {
+    ).concat({
       name: 'install',
       title: 'Install Packages',
       run(answers, ll, utils) {
@@ -51,6 +57,9 @@ module.exports = function typer(types, install = true) {
           .map((prom, i) =>
             prom.then(() => ll[packages[i]].complete('Installed'))))
           .then(() => `Installed ${packages.join(', ')}`);
+      },
+      when(answers) {
+        return answers.install;
       },
       order: -2
     }).concat({

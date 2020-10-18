@@ -4,7 +4,8 @@ module.exports = function eslint(type) {
   type.questions.push({
     type: 'confirm',
     name: 'eslint',
-    message: 'Use eslint?'
+    message: 'Use eslint?',
+    initial: true
   });
 
   const eslintrc = configFile('eslint', '.eslintrc', {

@@ -22,7 +22,7 @@ function combineQuestions(questions) {
 }
 
 module.exports = async function run(plugins, types, opts = {}) {
-  const typer = makeTyper(types, opts.install);
+  const typer = makeTyper(types);
   const questions = combineQuestions(plugins
     .reduce((arr, plugin) => arr.concat(plugin.questions), [])
     .concat(typer.questions));

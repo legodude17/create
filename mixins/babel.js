@@ -4,7 +4,8 @@ module.exports = function babel(type) {
   type.questions.push({
     type: 'confirm',
     name: 'babel',
-    message: 'Use babel?'
+    message: 'Use babel?',
+    initial: true
   });
 
   const babelrc = configFile('babel', '.babelrc', () => ({
