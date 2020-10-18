@@ -48,6 +48,7 @@ module.exports = async function run(plugins, types, opts = {}) {
       if (tl) {
         tl.error(e, false);
         ll.renderer.end(e);
+        throw new Error(`Task ${v.name} failed because ${e.toString()}`);
         return;
       }
       throw new Error(`Task ${v.name} failed because ${e.toString()}`);
