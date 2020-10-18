@@ -22,7 +22,7 @@ function combineQuestions(questions) {
   });
 }
 
-module.exports = async function run(plugins, types, opts = {}) {
+module.exports = async function run(plugins, types) {
   const typer = makeTyper(types);
   const questions = combineQuestions(plugins
     .reduce((arr, plugin) => arr.concat(plugin.questions), [])
@@ -33,7 +33,6 @@ module.exports = async function run(plugins, types, opts = {}) {
     const orderB = b.order || 0;
     return orderA - orderB;
   });
-  console.log(tasks);
   ll.start();
   let tl = null;
   for (const v of tasks) {
@@ -49,7 +48,6 @@ module.exports = async function run(plugins, types, opts = {}) {
       if (tl) {
         tl.error(e, false);
         ll.renderer.end(e);
-        console.error(`Task ${v.name} failed because ${e.toString()}`);
         return;
       }
       throw new Error(`Task ${v.name} failed because ${e.toString()}`);
