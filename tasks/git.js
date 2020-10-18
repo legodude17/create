@@ -19,6 +19,6 @@ module.exports = {
           .then(() => ll[i].complete('Ran command')));
       return util.series(proms).then(() => 'Git Inited');
     },
-    order: 1
+    order: 50
   }
 };
