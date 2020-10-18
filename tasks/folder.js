@@ -18,12 +18,12 @@ module.exports = {
   task: {
     name: 'folder',
     title: 'Create Folder',
-    order: 1,
-    run(answers) {
+    order: -1,
+    run(answers, ll, util) {
       return new Promise((resolve, reject) => {
         fs.mkdir(answers.folder, err => {
           if (err) return reject(err);
-          process.chdir(answers.folder);
+          util.cwd(answers.folder);
           return resolve(`Created folder ${answers.folder}.`);
         });
       });

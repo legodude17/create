@@ -60,7 +60,7 @@ module.exports = {
     title: 'Create package.json',
     run(answers, tl, util) {
       return util.writeFile('package.json', answers.pkgjson.result)
-        .then(() => `Created ${answers.folder}/package.json`);
+        .then(() => `Created ${util.resolve('package.json')}`);
     }
   }
 };

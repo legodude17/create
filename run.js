@@ -29,10 +29,9 @@ module.exports = async function run(plugins, types, opts = {}) {
     .concat(typer.questions));
   const answers = await enquirer.prompt(questions);
   const tasks = plugins.map(plugin => plugin.task).concat(typer.tasks).filter(Boolean).sort((a, b) => {
-    if (a.order && b.order) return a.order - b.order;
-    if (a.order) return -a.order;
-    if (b.order) return b.order;
-    return 0;
+    const orderA = a.order || 0;
+    const orderB = b.order || 0;
+    return orderA - orderB;
   });
   console.log(tasks);
   ll.start();
