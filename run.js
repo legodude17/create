@@ -5,6 +5,7 @@ const utils = require('./utils');
 
 function combineQuestions(questions) {
   const names = {};
+  // eslint-disable-next-line no-return-assign
   questions.forEach(v => (Array.isArray(names[v.name]) ?
     names[v.name].push(v) :
     (names[v.name] = [v])));
