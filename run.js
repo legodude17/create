@@ -34,6 +34,7 @@ module.exports = async function run(plugins, types, opts = {}) {
     if (b.order) return b.order;
     return 0;
   });
+  console.log(tasks);
   ll.start();
   let tl = null;
   for (const v of tasks) {
