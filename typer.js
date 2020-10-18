@@ -1,4 +1,4 @@
-module.exports = function typer(types, install) {
+module.exports = function typer(types, install = true) {
   if (types.length === 0) {
     return {
       questions: [],

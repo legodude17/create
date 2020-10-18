@@ -21,7 +21,7 @@ function combineQuestions(questions) {
   });
 }
 
-module.exports = async function run(plugins, types, opts) {
+module.exports = async function run(plugins, types, opts = {}) {
   const typer = makeTyper(types, opts.install);
   const questions = combineQuestions(plugins
     .reduce((arr, plugin) => arr.concat(plugin.questions), [])
