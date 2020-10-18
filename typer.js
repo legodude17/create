@@ -53,7 +53,7 @@ module.exports = function typer(types) {
         const packages = types.filter(type => type.type === answers.type)[0].packages(answers).filter(Boolean);
         packages.forEach(pkg => ll.addTask({ name: pkg, title: `Install ${pkg}` }));
         return Promise.all(packages
-          .map(pkg => utils.execa.shell(`npm i -D ${pkg}`, { cwd: process.cwd() }))
+          .map(pkg => utils.command('npm', `i -D ${pkg}`))
           .map((prom, i) =>
             prom.then(() => ll[packages[i]].complete('Installed'))))
           .then(() => `Installed ${packages.join(', ')}`);
@@ -61,7 +61,7 @@ module.exports = function typer(types) {
       when(answers) {
         return answers.install;
       },
-      order: -2
+      order: 100000
     }).concat({
       name: 'entry',
       title: 'Create Entrypoint',
