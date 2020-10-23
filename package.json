@@ -5,11 +5,9 @@
   "main": "index.js",
   "bin": "index.js",
   "files": [
-    "mixins/*",
-    "tasks/*",
+    "plugins/*",
     "types/*",
     "run.js",
-    "typer.js",
     "utils.js"
   ],
   "repository": {
