@@ -18,7 +18,7 @@ const utils = module.exports = {
     return arr[arr.length - 1];
   },
 
-  mkdirp: makeDir,
+  mkdirp: (path, opts) => makeDir(utils.resolve(path), opts),
 
   path,
   execa,

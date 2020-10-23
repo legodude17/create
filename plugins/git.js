@@ -1,15 +1,15 @@
-module.exports = {
+module.exports = () => ({
   questions: [],
-  task: {
+  tasks: [{
     name: 'git',
     title: 'Init Git',
-    run(answers, ll, util) {
+    run(answers, ll, util, state) {
       const commands = [
         'init',
         'add .',
         'commit -m "init"'
       ];
-      if (answers.github) {
+      if (state.github) {
         commands.push(`remote add origin https://github.com/${answers.username}/${answers.repo}`);
         commands.push('push -u origin master');
       }
@@ -19,6 +19,6 @@ module.exports = {
           .then(() => ll[i].complete('Ran command')));
       return util.series(proms).then(() => 'Git Inited');
     },
-    order: 50
-  }
-};
+    order: 30
+  }]
+});

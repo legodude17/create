@@ -1,6 +1,6 @@
 const semver = require('semver');
 
-module.exports = {
+module.exports = () => ({
   questions: [
     {
       name: 'pkgjson',
@@ -52,15 +52,16 @@ module.exports = {
   "repository": "\${username}/\${name}",
   "license": "\${license}"
 }
-`
+`,
+      order: -10
     }
   ],
-  task: {
+  tasks: [{
     name: 'pkgjson',
     title: 'Create package.json',
     run(answers, tl, util) {
       return util.writeFile('package.json', answers.pkgjson.result)
         .then(() => 'Created package.json');
     }
-  }
-};
+  }]
+});

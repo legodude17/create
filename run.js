@@ -1,7 +1,7 @@
 const enquirer = require('@legodude/enquirer');
 const ll = require('listr-log');
-const makeTyper = require('./typer');
 const utils = require('./utils');
+/* eslint-disable no-await-in-loop */
 
 function combineQuestions(questions) {
   const names = {};
@@ -22,27 +22,66 @@ function combineQuestions(questions) {
   });
 }
 
-module.exports = async function run(plugins, types) {
-  const typer = makeTyper(types);
-  const questions = combineQuestions(plugins
-    .reduce((arr, plugin) => arr.concat(plugin.questions), [])
-    .concat(typer.questions));
-  const answers = await enquirer.prompt(questions);
-  const tasks = plugins.map(plugin => plugin.task).concat(typer.tasks).filter(Boolean).sort((a, b) => {
-    const orderA = a.order || 0;
-    const orderB = b.order || 0;
-    return orderA - orderB;
+
+/*
+type is:
+{
+  type: '',
+  questions: [],
+  tasks: [],
+  plugins: []
+}
+
+*/
+
+function sortByOrder(objs) {
+  return objs.sort(({ order: a = 0 }, { order: b = 0 }) => a - b);
+}
+
+
+module.exports = async function run(types) {
+  const answers = {};
+  const { lang } = await enquirer.prompt({
+    type: 'select',
+    name: 'lang',
+    message: 'What language will this be in?',
+    choices: [...(new Set(types.map(type => type.language)))]
   });
+  answers.lang = lang;
+  const { typeName } = await enquirer.prompt({
+    type: 'select',
+    name: 'typeName',
+    message: 'What type of project is this?',
+    choices: types.filter(type => type.language === lang).map(type => type.type)
+  });
+  answers.type = typeName;
+  const type = types.filter(type => type.type === typeName)[0];
+  const questions = combineQuestions(sortByOrder(type.questions.concat(type.plugins.reduce((arr, plugin) => arr.concat(plugin.questions), []))));
+  for (const q of questions) {
+    if (!q.when || q.when(answers)) {
+      if (typeof q.initial === 'function') {
+        q.initial = q.initial(answers);
+      }
+      answers[q.name] = (await enquirer.prompt(q))[q.name];
+    }
+  }
+  const tasks = sortByOrder(type.tasks.concat(type.plugins.reduce((arr, plugin) => arr.concat(plugin.tasks), [])));
   ll.start();
   let tl = null;
+  const state = { type, lang };
   for (const v of tasks) {
     try {
       if (!v.when || v.when(answers)) {
-        ll.addTask({ name: v.name, title: v.title });
-        tl = ll[v.name];
-        const doneStr = await v.run(answers, tl, utils); // eslint-disable-line no-await-in-loop
-        tl.complete(doneStr);
-        tl = null;
+        const show = v.show == null || v.show;
+        if (show) {
+          ll.addTask({ name: v.name, title: v.title });
+          tl = ll[v.name];
+        }
+        const doneStr = await v.run(answers, tl, utils, state); // eslint-disable-line no-await-in-loop
+        if (show) {
+          tl.complete(doneStr);
+          tl = null;
+        }
       }
     } catch (e) {
       if (tl) {
