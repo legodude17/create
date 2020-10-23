@@ -16,7 +16,7 @@ module.exports = () => ({
   tasks: [{
     name: 'folder',
     title: 'Create Folder',
-    order: -1,
+    order: -50,
     run(answers, ll, util) {
       return util.mkdirp(answers.folder).then(() => {
         util.cwd(answers.folder);

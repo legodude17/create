@@ -44,7 +44,7 @@ module.exports = {
     babel(answers => [['env', { modules: false }], answers.react && 'react']),
     react(),
     readme(),
-    gitignore(['dist', '.cache']),
+    gitignore(['dist', '.cache', 'node_modules']),
     git(),
     github()
   ]

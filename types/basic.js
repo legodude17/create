@@ -24,7 +24,7 @@ module.exports = {
     entry('index.js'),
     readme(),
     github(),
-    gitignore(),
+    gitignore(['node_modules']),
     git()
   ]
 };

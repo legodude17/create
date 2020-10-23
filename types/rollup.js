@@ -52,7 +52,7 @@ module.exports = {
     entry('src/index.js'),
     babel(),
     eslint(),
-    gitignore(['dist']),
+    gitignore(['dist', 'node_modules']),
     github(),
     readme(),
     git()

@@ -7,16 +7,19 @@ module.exports = () => ({
       name: 'name',
       message: 'What is the name of the project?',
       when(answers) {
-        return answers.pkgjson != null && answers.pkgjson.name != null;
-      }
+        return answers.pkgjson == null;
+      },
+      initial: answers => answers.folder,
+      order: -1
     },
     {
       type: 'input',
       name: 'desc',
       message: 'What is the description of the project?',
       when(answers) {
-        return answers.pkgjson != null && answers.pkgjson.description != null;
-      }
+        return answers.pkgjson == null;
+      },
+      order: -1
     }
   ],
   tasks: [
@@ -24,8 +27,7 @@ module.exports = () => ({
       name: 'readme',
       file: 'README.md',
       contents: answers => `# ${answers.name || (answers.pkgjson && answers.pkgjson.name)}
-
-${answers.desc || (answers.pkgjson && answers.pkgjson.desc)}`
+> ${answers.desc || (answers.pkgjson && answers.pkgjson.desc)}`
     }))
   ]
 });

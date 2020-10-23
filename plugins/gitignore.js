@@ -7,7 +7,7 @@ module.exports = files => ({
       state.configs.push({
         program: 'git',
         file: '.gitignore',
-        contents: ['node_modules'].concat(files)
+        contents: files
       });
     }, null, 2)
   ]
