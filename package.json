@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/legodude17/init#readme",
   "dependencies": {
-    "@legodude/enquirer": "^2.3.0",
+    "enquirer": "^2.3.6",
     "execa": "^0.10.0",
     "github-api": "^3.3.0",
     "listr-log": "^0.2.0",

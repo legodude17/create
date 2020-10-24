@@ -1,4 +1,4 @@
-const enquirer = require('@legodude/enquirer');
+const enquirer = require('enquirer');
 const ll = require('listr-log');
 const utils = require('./utils');
 /* eslint-disable no-await-in-loop */
