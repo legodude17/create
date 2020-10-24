@@ -8,7 +8,8 @@
     "plugins/*",
     "types/*",
     "run.js",
-    "utils.js"
+    "utils.js",
+    "helpers.js"
   ],
   "repository": {
     "type": "git",
