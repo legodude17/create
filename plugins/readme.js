@@ -26,8 +26,8 @@ module.exports = () => ({
     setState(state => state.configs.push({
       name: 'readme',
       file: 'README.md',
-      contents: answers => `# ${answers.name || (answers.pkgjson && answers.pkgjson.name)}
-> ${answers.desc || (answers.pkgjson && answers.pkgjson.desc)}`
+      contents: answers => `# ${answers.name || (answers.pkgjson && answers.pkgjson.values.name)}
+> ${answers.desc || (answers.pkgjson && answers.pkgjson.values.description)}`
     }))
   ]
 });
