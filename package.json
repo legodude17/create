@@ -1,9 +1,11 @@
 {
   "name": "create-legodude",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "A tool to init packages like me",
   "main": "index.js",
-  "bin": "index.js",
+  "bin": {
+    "create-legodude": "index.js"
+  },
   "files": [
     "plugins/*",
     "types/*",
