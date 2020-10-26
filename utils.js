@@ -40,7 +40,21 @@ const utils = module.exports = {
     return path.resolve(utils.cwd(), ...args);
   },
 
+  async createConfigIfNeeded() {
+    try {
+      await fs.access(utils.CONFIGFILE);
+      return;
+    } catch (e) {
+      if (e.errno === -2) {
+        await fs.writeFile(utils.CONFIGFILE, '{}');
+        return;
+      }
+      throw e;
+    }
+  },
+
   async config(c) {
+    await utils.createConfigIfNeeded();
     const oldConfig = JSON.parse(await fs.readFile(utils.CONFIGFILE, 'utf8'));
     if (c == null) return oldConfig;
     const newConfig = Object.assign({}, oldConfig, c);
