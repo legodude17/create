@@ -58,11 +58,15 @@ module.exports = async function run(types) {
   const type = types.filter(type => type.type === typeName)[0];
   const questions = combineQuestions(sortByOrder(type.questions.concat(type.plugins.reduce((arr, plugin) => arr.concat(plugin.questions), []))));
   for (const q of questions) {
-    if (!q.when || q.when(answers)) {
+    if (!q.when || await q.when(answers, utils)) {
       if (typeof q.initial === 'function') {
-        q.initial = q.initial(answers);
+        q.initial = await q.initial(answers, utils);
       }
       answers[q.name] = (await enquirer.prompt(q))[q.name];
+    } else if (typeof q.initial === 'function') {
+      answers[q.name] = await q.initial(answers, utils);
+    } else {
+      answers[q.name] = q.initial;
     }
   }
   const tasks = sortByOrder(type.tasks.concat(type.plugins.reduce((arr, plugin) => arr.concat(plugin.tasks), [])));
@@ -71,7 +75,7 @@ module.exports = async function run(types) {
   const state = { type, lang };
   for (const v of tasks) {
     try {
-      if (!v.when || v.when(answers)) {
+      if (!v.when || await v.when(answers, utils)) {
         const show = v.show == null || v.show;
         if (show) {
           ll.addTask({ name: v.name, title: v.title });
