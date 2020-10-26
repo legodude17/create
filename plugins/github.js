@@ -47,10 +47,24 @@ module.exports = () => ({
       when: isGithub
     },
     {
-      type: 'password',
-      name: 'ghpass',
-      message: 'What is your GitHub password?',
-      when: isGithub
+      type: 'invisible',
+      name: 'ghtoken',
+      message: 'Generate a GitHub personal access token, then enter here:',
+      async when(answers, util) {
+        return answers.github && (await util.config()).ghtoken != null;
+      },
+      async initial(answers, util) {
+        return (await util.config()).ghtoken;
+      }
+    },
+    {
+      type: 'confirm',
+      name: 'saveghtoken',
+      message: 'Save GH Token?',
+      async when(answers, util) {
+        return answers.github && (await util.config()).ghtoken != null;
+      },
+      initial: false
     }
   ],
   tasks: [
@@ -60,14 +74,22 @@ module.exports = () => ({
       when: isGithub,
       run(answers) {
         const gh = new GitHub({
-          username: answers.username,
-          password: answers.ghpass
+          token: answers.ghtoken
         });
         const user = gh.getUser(answers.username);
         return user.createRepo({
           name: answers.repo,
           description: answers.ghdesc
         }).then(() => `Created repo ${answers.username}/${answers.repo}`);
+      }
+    },
+    {
+      name: 'savetoken',
+      title: 'Save access token',
+      when: answers => answers.github && answers.saveghtoken,
+      async run(answers, ll, util) {
+        await util.config({ ghtoken: answers.ghtoken });
+        return `Wrote to ${util.CONFIGFILENAME}`;
       }
     },
     setState({ github: true }, isGithub)
