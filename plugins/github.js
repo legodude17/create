@@ -30,8 +30,9 @@ module.exports = () => ({
       message: 'What is the repo description?',
       initial(answers) {
         if (answers.pkgjson && answers.pkgjson.values.description) return answers.pkgjson.values.description;
-        if (answers.folder) return answers.folder;
+        if (answers.desc) return answers.desc;
         if (answers.name) return answers.name;
+        if (answers.folder) return answers.folder;
         return '';
       },
       when: isGithub
