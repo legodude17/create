@@ -41,7 +41,7 @@ const utils = module.exports = {
   },
 
   async config(c) {
-    const oldConfig = JSON.parse(await fs.readFileSync(utils.CONFIGFILE, 'utf8'));
+    const oldConfig = JSON.parse(await fs.readFile(utils.CONFIGFILE, 'utf8'));
     if (c == null) return oldConfig;
     const newConfig = Object.assign({}, oldConfig, c);
     await utils.write(utils.CONFIGFILE, newConfig);
