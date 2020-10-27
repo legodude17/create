@@ -52,7 +52,7 @@ module.exports = () => ({
       name: 'ghtoken',
       message: 'Generate a GitHub personal access token, then enter here:',
       async when(answers, util) {
-        return answers.github && (await util.config()).ghtoken != null;
+        return answers.github && (await util.config()).ghtoken == null;
       },
       async initial(answers, util) {
         return (await util.config()).ghtoken;

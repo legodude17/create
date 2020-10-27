@@ -23,7 +23,8 @@ module.exports = {
         '1.0',
         '1.1',
         '1.2'
-      ]
+      ],
+      initial: ['1.2']
     },
     {
       type: 'confirm',
