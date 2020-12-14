@@ -63,7 +63,7 @@ module.exports = () => ({
       name: 'saveghtoken',
       message: 'Save GH Token?',
       async when(answers, util) {
-        return answers.github && (await util.config()).ghtoken != null;
+        return answers.github && (await util.config()).ghtoken == null;
       },
       initial: false
     }
