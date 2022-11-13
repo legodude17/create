@@ -24,10 +24,15 @@ const app = createCLI(cli =>
         })
     )
     .option(opt =>
-      opt.name("name").desc("Name of the project").type("string").prompt({
-        type: "input",
-        message: "What should it be called?"
-      })
+      opt
+        .name("name")
+        .desc("Name of the project")
+        .type("string")
+        .config(false)
+        .prompt({
+          type: "input",
+          message: "What should it be called?"
+        })
     )
     .option(opt =>
       opt
@@ -36,6 +41,7 @@ const app = createCLI(cli =>
         .desc("Description of the project")
         .type("string")
         .default("Project")
+        .config(false)
         .prompt({
           type: "input",
           message: "How to describe it?"
@@ -47,6 +53,7 @@ const app = createCLI(cli =>
         .desc("If a GitHub repo should be created for the project")
         .type("boolean")
         .default(true)
+        .config(false)
         .prompt({
           type: "confirm",
           message: "Create GitHub repo?",
@@ -59,6 +66,7 @@ const app = createCLI(cli =>
         .desc("If a git repo should be initialized")
         .type("boolean")
         .default(true)
+        .config(false)
         .prompt({
           type: "confirm",
           message: "Create Git repo?",
@@ -71,6 +79,7 @@ const app = createCLI(cli =>
         .desc("If npm packages should be installed.")
         .type("boolean")
         .default(true)
+        .config(false)
         .prompt({
           type: "confirm",
           message: "Install packages?",
@@ -86,6 +95,7 @@ const app = createCLI(cli =>
         .choices("eslint", "prettier")
         .array()
         .default(["eslint", "prettier"])
+        .config(false)
         .prompt({
           type: "multiselect",
           message: "Formatter / Linter:",
@@ -99,6 +109,7 @@ const app = createCLI(cli =>
         .desc("Entrypoint of the application")
         .type("string")
         .default("index.js")
+        .config(false)
         .prompt({
           type: "input",
           message: "What is the entrypoint?",
@@ -110,6 +121,7 @@ const app = createCLI(cli =>
         .name("bin")
         .desc("Binary file (leave blank if not CLI)")
         .type("string")
+        .config(false)
         .prompt({
           type: "input",
           message: "What is the binary file? (Leave blank for none)"
