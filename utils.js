@@ -1,68 +1,38 @@
-const { promises: fs } = require('fs');
-const execa = require('execa');
-const series = require('p-series');
-const path = require('path');
-const makeDir = require('make-dir');
+import fs from "node:fs/promises";
+import path from "node:path";
+import { execa } from "execa";
 
-const utils = module.exports = {
-  writeFile: (place, contents) => fs.writeFile(utils.resolve(place), contents),
+let _cwd = process.cwd();
 
-  format: obj => JSON.stringify(obj, null, 2),
+export function cwd(dir) {
+  if (dir) {
+    _cwd = dir;
+  }
+  return _cwd;
+}
 
-  write: (place, obj) => utils.writeFile(place, utils.format(obj)),
+export function resolve(...args) {
+  return path.resolve(cwd(), ...args);
+}
 
-  folder: name => {
-    const arr = name.split('/');
-    return arr[arr.length - 1];
-  },
+export function command(command, args, opts = {}) {
+  if (!Array.isArray(args)) args = args.split(" ");
+  opts.cwd = cwd();
+  return execa(command, args, opts);
+}
 
-  mkdirp: (path, opts) => makeDir(utils.resolve(path), opts),
+export function mkdirp(path, opts = {}) {
+  return fs.mkdir(path, { recursive: true, ...opts });
+}
 
-  path,
-  execa,
-  series,
+export function format(obj) {
+  return JSON.stringify(obj, undefined, 2);
+}
 
-  command(command, args, opts = {}) {
-    if (!Array.isArray(args)) args = args.split(' ');
-    opts.cwd = utils.cwd();
-    return execa(command, args, opts);
-  },
+export function writeFile(place, contents) {
+  return fs.writeFile(resolve(place), contents, "utf8");
+}
 
-  _cwd: process.cwd(),
-  cwd(dir) {
-    if (dir) {
-      utils._cwd = dir;
-    }
-    return utils._cwd;
-  },
-
-  resolve(...args) {
-    return path.resolve(utils.cwd(), ...args);
-  },
-
-  async createConfigIfNeeded() {
-    try {
-      await fs.access(utils.CONFIGFILE);
-      return;
-    } catch (e) {
-      if (e.errno === -2) {
-        await fs.writeFile(utils.CONFIGFILE, '{}');
-        return;
-      }
-      throw e;
-    }
-  },
-
-  async config(c) {
-    await utils.createConfigIfNeeded();
-    const oldConfig = JSON.parse(await fs.readFile(utils.CONFIGFILE, 'utf8'));
-    if (c == null) return oldConfig;
-    const newConfig = Object.assign({}, oldConfig, c);
-    await utils.write(utils.CONFIGFILE, newConfig);
-    return newConfig;
-  },
-
-  CONFIGFILENAME: '.create-legodude.json'
-};
-
-utils.CONFIGFILE = path.join(process.env.HOME, utils.CONFIGFILENAME);
+export function write(place, obj) {
+  return writeFile(place, format(obj));
+}
