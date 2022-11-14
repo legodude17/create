@@ -21,16 +21,18 @@ export function command(command, args, opts = {}) {
   return execa(command, args, opts);
 }
 
-export function mkdirp(path, opts = {}) {
-  return fs.mkdir(path, { recursive: true, ...opts });
+export async function mkdirp(path, opts = {}) {
+  fs.mkdir(resolve(path), { recursive: true, ...opts });
+  return `Created ${path}`;
 }
 
 export function format(obj) {
   return JSON.stringify(obj, undefined, 2);
 }
 
-export function writeFile(place, contents) {
-  return fs.writeFile(resolve(place), contents, "utf8");
+export async function writeFile(place, contents) {
+  await fs.writeFile(resolve(place), contents, "utf8");
+  return `Wrote ${place}`;
 }
 
 export function write(place, obj) {

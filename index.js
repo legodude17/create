@@ -56,8 +56,7 @@ const app = createCLI(cli =>
         .config(false)
         .prompt({
           type: "confirm",
-          message: "Create GitHub repo?",
-          initial: true
+          message: "Create GitHub repo?"
         })
     )
     .option(opt =>
@@ -69,8 +68,7 @@ const app = createCLI(cli =>
         .config(false)
         .prompt({
           type: "confirm",
-          message: "Create Git repo?",
-          initial: true
+          message: "Create Git repo?"
         })
     )
     .option(opt =>
@@ -82,8 +80,7 @@ const app = createCLI(cli =>
         .config(false)
         .prompt({
           type: "confirm",
-          message: "Install packages?",
-          initial: true
+          message: "Install packages?"
         })
     )
     .option(opt =>
@@ -99,8 +96,7 @@ const app = createCLI(cli =>
         .prompt({
           type: "multiselect",
           message: "Formatter / Linter:",
-          choices: ["eslint", "prettier"],
-          initial: ["eslint", "prettier"]
+          choices: ["eslint", "prettier"]
         })
     )
     .option(opt =>
@@ -112,8 +108,7 @@ const app = createCLI(cli =>
         .config(false)
         .prompt({
           type: "input",
-          message: "What is the entrypoint?",
-          initial: "index.js"
+          message: "What is the entrypoint?"
         })
     )
     .option(opt =>
@@ -226,6 +221,7 @@ app.on("**", async (args, opts) => {
       handler: async () => {
         await mkdirp(args.folder);
         cwd(resolve(args.folder));
+        return "Created!";
       }
     },
     {
@@ -264,40 +260,19 @@ app.on("**", async (args, opts) => {
     {
       name: "Create entrypoint",
       key: "entry",
-      handler: () => {
+      handler: async () => {
         const file = resolve(opts.entry);
-        return [
-          {
-            name: "Folder",
-            key: "entryfolder",
-            handler: () => mkdirp(dirname(file))
-          },
-          {
-            name: "File",
-            key: "entryfile",
-            handler: () => writeFile(file, "// ENTRYPOINT")
-          }
-        ];
+        await mkdirp(dirname(file));
+        return writeFile(file, "// ENTRYPOINT");
       }
     },
     opts.bin && {
       name: "Create bin",
       key: "bin",
-      handler: () => {
+      handler: async () => {
         const file = resolve(opts.bin);
-        return [
-          {
-            name: "Folder",
-            key: "binfolder",
-            handler: () => mkdirp(dirname(file))
-          },
-          {
-            name: "File",
-            key: "binfile",
-            handler: () =>
-              writeFile(file, "#! /usr/bin/env node\n\n// ENTRYPOINT")
-          }
-        ];
+        await mkdirp(dirname(file));
+        return writeFile(file, "#! /usr/bin/env node\n\n// ENTRYPOINT");
       }
     },
     opts.linter.includes("eslint") && {
@@ -343,6 +318,8 @@ app.on("**", async (args, opts) => {
         command("npm", [
           "i",
           "-D",
+          "--no-audit",
+          "--no-fund",
           ...(opts.linter.includes("prettier") ? ["prettier"] : []),
           ...(opts.linter.includes("eslint")
             ? [
