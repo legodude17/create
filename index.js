@@ -28,6 +28,7 @@ const app = createCLI(cli =>
         .name("name")
         .desc("Name of the project")
         .type("string")
+        .default(({ folder }) => folder)
         .config(false)
         .prompt({
           type: "input",
@@ -130,15 +131,21 @@ const app = createCLI(cli =>
         .default("legodude17")
         .prompt({
           type: "input",
-          message: "What is your GitHub username?"
+          message: "What is your GitHub username?",
+          skip: ({ github }) => !github
         })
     )
     .option(opt =>
-      opt.name("token").desc("Your GitHub token").type("string").prompt({
-        type: "password",
-        message:
-          "What is your GitHub token? (Go to https://github.com/settings/tokens/new?scopes=repo to make one)"
-      })
+      opt
+        .name("token")
+        .desc("Your GitHub token")
+        .type("string")
+        .prompt({
+          type: "password",
+          message:
+            "What is your GitHub token? (Go to https://github.com/settings/tokens/new?scopes=repo to make one)",
+          skip: ({ github }) => !github
+        })
     )
 );
 
