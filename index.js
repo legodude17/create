@@ -1,12 +1,15 @@
 // eslint-disable-next-line import/no-unresolved
 import createCLI from "noclis";
 import { mkdirp, cwd, resolve, writeFile, write, command } from "./utils.js";
+import getPkgJson from "./pkgjson.js";
 import semver from "semver";
 import licenses from "spdx-license-list/simple.js";
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { Octokit } from "octokit";
+import validate from "validate-npm-package-name";
+const licenseArray = [...licenses];
 
 const app = createCLI(cli =>
   cli
@@ -32,8 +35,22 @@ const app = createCLI(cli =>
         .config(false)
         .prompt({
           type: "input",
-          message: "What should it be called?"
+          message: "What should it be called?",
+          validate(name) {
+            if (name === "") return "Name must not be empty";
+            const result = validate(name);
+            return (
+              result.validForNewPackages ||
+              [...result.errors, ...result.warnings].join(", ")
+            );
+          }
         })
+    )
+    .option(opt =>
+      opt.name("scope").desc("Scope of the package").type("string").prompt({
+        type: "input",
+        message: "What scope should it be in?"
+      })
     )
     .option(opt =>
       opt
@@ -46,6 +63,27 @@ const app = createCLI(cli =>
         .prompt({
           type: "input",
           message: "How to describe it?"
+        })
+    )
+    .option(opt =>
+      opt
+        .name("license")
+        .desc("License to create the project with")
+        .type("string")
+        .default("MIT")
+        .choices(...licenses)
+        .prompt({
+          type: "autocomplete",
+          name: "license",
+          choices: licenseArray,
+          limit: 6,
+          initial: licenseArray.indexOf("MIT"),
+          validate(value) {
+            if (!licenses.has(value)) {
+              return "license should be a valid license identifier";
+            }
+            return true;
+          }
         })
     )
     .option(opt =>
@@ -149,77 +187,8 @@ const app = createCLI(cli =>
     )
 );
 
-app.on("**", async (args, opts) => {
-  const { pkgjson } = await app.prompt({
-    name: "pkgjson",
-    type: "snippet",
-    message: "Fill out the fields in package.json:",
-    fields: [
-      {
-        name: "name",
-        validate(name) {
-          if (name === "") return "Name must not be empty";
-          if (encodeURIComponent(name) !== name)
-            return "Name must not include URI-encodable characters";
-          return true;
-        },
-        initial: opts.name
-      },
-      {
-        name: "version",
-        validate(value, state, item) {
-          if (item && item.name === "version" && !semver.valid(value)) {
-            return "version should be a valid semver value";
-          }
-          return true;
-        },
-        initial: "0.0.0"
-      },
-      {
-        name: "description",
-        initial: opts.description
-      },
-      {
-        name: "username",
-        initial: opts.username
-      },
-      {
-        name: "author_name",
-        message: "Author Name",
-        initial: "JDB"
-      },
-      {
-        name: "license",
-        initial: "MIT",
-        validate(value, state, item) {
-          if (
-            item &&
-            item.name === "license" &&
-            value &&
-            !licenses.has(value)
-          ) {
-            return "license should be avlid license identifier";
-          }
-          return true;
-        }
-      },
-      { name: "main", initial: opts.entry },
-      { name: "bin", initial: opts.bin }
-    ],
-    template: `{
-  "name": "\${name}",
-  "description": "\${description}",
-  "version": "\${version}",
-  "main": "\${main}",
-  "bin": "\${bin}",
-  "homepage": "https://github.com/\${username}/\${name}",
-  "author": "\${author_name} (https://github.com/\${username})",
-  "repository": "\${username}/\${name}",
-  "license": "\${license}",
-  "type": "module"
-}
-`
-  });
+app.on(async (args, opts) => {
+  const pkgjson = await getPkgJson(opts, args, app);
   Object.assign(opts, pkgjson.values);
   return [
     {
@@ -350,6 +319,11 @@ app.on("**", async (args, opts) => {
           ["node_modules/", "dist/"].filter(Boolean).join("\n")
         )
     },
+    opts.scope && {
+      name: "Create .npmrc",
+      key: "npmrc",
+      handler: () => writeFile(".npmrc", "access=public\n")
+    },
     opts.git && {
       name: "Initalize git",
       key: "git",
@@ -368,7 +342,7 @@ app.on("**", async (args, opts) => {
       handler: () => {
         const octokit = new Octokit({ auth: opts.token });
         return octokit.rest.repos.createForAuthenticatedUser({
-          name: opts.name,
+          name: opts.reponame,
           description: opts.desc
         });
       }
@@ -379,7 +353,7 @@ app.on("**", async (args, opts) => {
         key: "origin",
         handler: () => {
           const commands = [
-            `remote add origin https://github.com/${opts.username}/${opts.name}`,
+            `remote add origin https://github.com/${opts.username}/${opts.reponame}`,
             "push -u origin main"
           ];
           return commands.map(c => ({

@@ -6,13 +6,7 @@
   "bin": "bin.js",
   "type": "module",
   "files": [
-    "plugins/*",
-    "types/*",
-    "run.js",
-    "utils.js",
-    "helpers.js",
-    "index.js",
-    "bin.js"
+    "*.js"
   ],
   "repository": {
     "type": "git",
@@ -34,7 +28,8 @@
     "noclis": "^0.4.0-beta.2",
     "octokit": "^2.0.10",
     "semver": "^7.3.8",
-    "spdx-license-list": "^6.6.0"
+    "spdx-license-list": "^6.6.0",
+    "validate-npm-package-name": "^5.0.0"
   },
   "devDependencies": {
     "eslint": "^8.26.0",
