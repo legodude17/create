@@ -31,7 +31,7 @@ const app = createCLI(cli =>
         .name("name")
         .desc("Name of the project")
         .type("string")
-        .default(({ folder }) => folder)
+        .default(state => state.state.answers.folder)
         .config(false)
         .prompt({
           type: "input",
@@ -170,7 +170,9 @@ const app = createCLI(cli =>
         .prompt({
           type: "input",
           message: "What is your GitHub username?",
-          skip: ({ github }) => !github
+          skip() {
+            return !this.state.answers.github;
+          }
         })
     )
     .option(opt =>
@@ -182,7 +184,9 @@ const app = createCLI(cli =>
           type: "password",
           message:
             "What is your GitHub token? (Go to https://github.com/settings/tokens/new?scopes=repo to make one)",
-          skip: ({ github }) => !github
+          skip() {
+            return !this.state.answers.github;
+          }
         })
     )
 );
