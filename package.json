@@ -1,6 +1,6 @@
 {
   "name": "create-legodude",
-  "version": "4.2.1",
+  "version": "4.3.0-beta.0",
   "description": "A tool to init packages like me",
   "main": "index.js",
   "bin": {
