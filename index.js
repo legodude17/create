@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import createCLI from "noclis";
 import { mkdirp, cwd, resolve, writeFile, write, command } from "./utils.js";
-import getPkgJson from "./pkgjson.js";
 import semver from "semver";
 import licenses from "spdx-license-list/simple.js";
 import { createRequire } from "node:module";
@@ -9,22 +8,21 @@ import { readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { Octokit } from "octokit";
 import validate from "validate-npm-package-name";
+import pkgjson from "./pkgjson.js";
 const licenseArray = [...licenses];
 
 const app = createCLI(cli =>
   cli
     .config("name", "create")
     .config("version", "4.0.0")
+    .config("interactiveDefault", true)
     .argument(arg =>
       arg
         .name("folder")
         .desc("Folder to put your new thing in.")
         .type("string")
         .required()
-        .prompt({
-          type: "input",
-          message: "Where should it be?"
-        })
+        .prompt("Where should it be?")
     )
     .option(opt =>
       opt
@@ -34,7 +32,6 @@ const app = createCLI(cli =>
         .default(state => state.state.answers.folder)
         .config(false)
         .prompt({
-          type: "input",
           message: "What should it be called?",
           validate(name) {
             if (name === "") return "Name must not be empty";
@@ -47,10 +44,11 @@ const app = createCLI(cli =>
         })
     )
     .option(opt =>
-      opt.name("scope").desc("Scope of the package").type("string").prompt({
-        type: "input",
-        message: "What scope should it be in?"
-      })
+      opt
+        .name("scope")
+        .desc("Scope of the package")
+        .type("string")
+        .prompt("What scope should it be in?")
     )
     .option(opt =>
       opt
@@ -60,10 +58,7 @@ const app = createCLI(cli =>
         .type("string")
         .default("Project")
         .config(false)
-        .prompt({
-          type: "input",
-          message: "How to describe it?"
-        })
+        .prompt("How to describe it?")
     )
     .option(opt =>
       opt
@@ -93,10 +88,7 @@ const app = createCLI(cli =>
         .type("boolean")
         .default(true)
         .config(false)
-        .prompt({
-          type: "confirm",
-          message: "Create GitHub repo?"
-        })
+        .prompt("Create GitHub repo?")
     )
     .option(opt =>
       opt
@@ -105,10 +97,7 @@ const app = createCLI(cli =>
         .type("boolean")
         .default(true)
         .config(false)
-        .prompt({
-          type: "confirm",
-          message: "Create Git repo?"
-        })
+        .prompt("Create Git repo?")
     )
     .option(opt =>
       opt
@@ -117,10 +106,7 @@ const app = createCLI(cli =>
         .type("boolean")
         .default(true)
         .config(false)
-        .prompt({
-          type: "confirm",
-          message: "Install packages?"
-        })
+        .prompt("Install packages?")
     )
     .option(opt =>
       opt
@@ -145,10 +131,7 @@ const app = createCLI(cli =>
         .type("string")
         .default("index.js")
         .config(false)
-        .prompt({
-          type: "input",
-          message: "What is the entrypoint?"
-        })
+        .prompt("What is the entrypoint?")
     )
     .option(opt =>
       opt
@@ -156,10 +139,7 @@ const app = createCLI(cli =>
         .desc("Binary file (leave blank if not CLI)")
         .type("string")
         .config(false)
-        .prompt({
-          type: "input",
-          message: "What is the binary file? (Leave blank for none)"
-        })
+        .prompt("What is the binary file? (Leave blank for none)")
     )
     .option(opt =>
       opt
@@ -168,7 +148,6 @@ const app = createCLI(cli =>
         .type("string")
         .default("legodude17")
         .prompt({
-          type: "input",
           message: "What is your GitHub username?",
           skip() {
             return !this.state.answers.github;
@@ -189,11 +168,11 @@ const app = createCLI(cli =>
           }
         })
     )
+    .prompt(pkgjson)
 );
 
 app.on(async (args, opts) => {
-  const pkgjson = await getPkgJson(opts, args, app);
-  Object.assign(opts, pkgjson.values);
+  Object.assign(opts, opts.pkgjson.values);
   return [
     {
       name: "Create folder",
@@ -207,7 +186,7 @@ app.on(async (args, opts) => {
     {
       name: "Write package.json",
       key: "package",
-      handler: () => writeFile("package.json", pkgjson.result)
+      handler: () => writeFile("package.json", opts.pkgjson.result)
     },
     {
       name: "Write README.md",

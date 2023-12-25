@@ -1,7 +1,7 @@
 import semver from "semver";
 import licenses from "spdx-license-list/simple.js";
 import validate from "validate-npm-package-name";
-export default async function pkgjson(opts, args, app) {
+export default async function pkgjson(context) {
   const fields = [
     {
       name: "name",
@@ -13,11 +13,13 @@ export default async function pkgjson(opts, args, app) {
           [...result.errors, ...result.warnings].join(", ")
         );
       },
-      initial: opts.scope ? `@${opts.scope}/${opts.name}` : opts.name
+      initial: context.scope
+        ? `@${context.scope}/${context.name}`
+        : context.name
     },
     {
       name: "reponame",
-      initial: opts.name,
+      initial: context.name,
       validate(name) {
         if (name === "") return "Name must not be empty";
         const illegal = name.replace(/[\w-]*/g, "");
@@ -37,11 +39,11 @@ export default async function pkgjson(opts, args, app) {
     },
     {
       name: "description",
-      initial: opts.description
+      initial: context.description
     },
     {
       name: "username",
-      initial: opts.username
+      initial: context.username
     },
     {
       name: "author_name",
@@ -50,7 +52,7 @@ export default async function pkgjson(opts, args, app) {
     },
     {
       name: "license",
-      initial: opts.license,
+      initial: context.license,
       validate(value) {
         if (!licenses.has(value)) {
           return "license should be a valid license identifier";
@@ -58,14 +60,14 @@ export default async function pkgjson(opts, args, app) {
         return true;
       }
     },
-    { name: "main", initial: opts.entry }
+    { name: "main", initial: context.entry }
   ];
-  if (opts.bin) fields.push({ name: "bin", initial: opts.bin });
+  if (context.bin) fields.push({ name: "bin", initial: context.bin });
   const template = `{
   "name": "\${name}",
   "description": "\${description}",
   "version": "\${version}",
-  "main": "\${main}",${opts.bin ? `\n  "bin": "\${bin}",` : ""}
+  "main": "\${main}",${context.bin ? `\n  "bin": "\${bin}",` : ""}
   "homepage": "https://github.com/\${username}/\${reponame}",
   "author": "\${author_name} (https://github.com/\${username})",
   "repository": "\${username}/\${reponame}",
@@ -73,12 +75,11 @@ export default async function pkgjson(opts, args, app) {
   "type": "module"
 }
 `;
-  const { pkgjson } = await app.prompt({
+  return {
     name: "pkgjson",
     type: "snippet",
     message: "Fill out the fields in package.json:",
     fields,
     template
-  });
-  return pkgjson;
+  };
 }
