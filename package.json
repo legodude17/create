@@ -22,13 +22,13 @@
   "author": "JDB",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/legodude17/init/issues"
+    "url": "https://github.com/legodude17/create/issues"
   },
-  "homepage": "https://github.com/legodude17/init#readme",
+  "homepage": "https://github.com/legodude17/create#readme",
   "dependencies": {
     "execa": "^6.1.0",
-    "noclis": "^0.5.1-beta.0",
-    "octokit": "^3.1.2",
+    "noclis": "^0.6.1-beta.0",
+    "octokit": "^4.1.2",
     "semver": "^7.3.8",
     "spdx-license-list": "^6.6.0",
     "validate-npm-package-name": "^5.0.0"
@@ -51,6 +51,6 @@
     "clean": "rm -rf test*"
   },
   "engines": {
-    "node": "^21.1.0"
+    "node": ">=22"
   }
 }

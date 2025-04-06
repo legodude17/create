@@ -29,7 +29,7 @@ const app = createCLI(cli =>
         .name("name")
         .desc("Name of the project")
         .type("string")
-        .default(state => state.state.answers.folder)
+        .default(answers => answers.folder)
         .config(false)
         .prompt({
           message: "What should it be called?",
@@ -89,6 +89,7 @@ const app = createCLI(cli =>
         .default(true)
         .config(false)
         .prompt("Create GitHub repo?")
+        .require("git", true)
     )
     .option(opt =>
       opt
@@ -148,11 +149,9 @@ const app = createCLI(cli =>
         .type("string")
         .default("legodude17")
         .prompt({
-          message: "What is your GitHub username?",
-          skip() {
-            return !this.state.answers.github;
-          }
+          message: "What is your GitHub username?"
         })
+        .require("github", true)
     )
     .option(opt =>
       opt
@@ -162,11 +161,9 @@ const app = createCLI(cli =>
         .prompt({
           type: "password",
           message:
-            "What is your GitHub token? (Go to https://github.com/settings/tokens/new?scopes=repo to make one)",
-          skip() {
-            return !this.state.answers.github;
-          }
+            "What is your GitHub token? (Go to https://github.com/settings/tokens/new?scopes=repo to make one)"
         })
+        .require("github", true)
     )
     .prompt(pkgjson)
 );
@@ -282,18 +279,18 @@ app.on(async (args, opts) => {
           ...(opts.linter.includes("prettier") ? ["prettier"] : []),
           ...(opts.linter.includes("eslint")
             ? [
-                "eslint",
-                "eslint-plugin-import",
-                "eslint-plugin-n",
-                "eslint-plugin-unicorn"
-              ]
+              "eslint",
+              "eslint-plugin-import",
+              "eslint-plugin-n",
+              "eslint-plugin-unicorn"
+            ]
             : []),
           ...(opts.linter.includes("prettier") && opts.linter.includes("eslint")
             ? ["eslint-config-prettier"]
             : [])
         ])
     },
-    {
+    opts.git && {
       name: "Create .gitignore",
       key: "gitignore",
       handler: () =>
@@ -331,21 +328,21 @@ app.on(async (args, opts) => {
       }
     },
     opts.git &&
-      opts.github && {
-        name: "Add git origin",
-        key: "origin",
-        handler: () => {
-          const commands = [
-            `remote add origin https://github.com/${opts.username}/${opts.reponame}`,
-            "push -u origin main"
-          ];
-          return commands.map(c => ({
-            name: "git " + c,
-            key: "git" + c.split(" ")[0],
-            handler: () => command("git", c)
-          }));
-        }
+    opts.github && {
+      name: "Add git origin",
+      key: "origin",
+      handler: () => {
+        const commands = [
+          `remote add origin https://github.com/${opts.username}/${opts.reponame}`,
+          "push -u origin main"
+        ];
+        return commands.map(c => ({
+          name: "git " + c,
+          key: "git" + c.split(" ")[0],
+          handler: () => command("git", c)
+        }));
       }
+    }
   ].filter(Boolean);
 });
 
